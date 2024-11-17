@@ -16,7 +16,7 @@ let sendData = (data) => {
             return response.json();
         })
         .then(result => {
-            alert('Agradeciendo tu preferencia, nos mantenemos actualizados y enfocados en atenderte como mereces');
+            alert('Tu opinión ha sido enviada!');
             form.reset();
             getData();
         })
@@ -36,26 +36,53 @@ let getData = async () => {
         }
         const data = await response.json();
         if(data != null){
-            let subscriberCount = new Map();
+            let gameCount = new Map();
+            let monsterCount = new Map();
             for(key of Object.keys(data)){
-                const { saved, email } = data[key];
-                date = saved.split(",")[0];
-                let counter = subscriberCount.get(date);
-                counter ? subscriberCount.set(date, counter + 1): subscriberCount.set(date, 1);
+                const { choices, monster } = data[key];
+                let counter = monsterCount.get(monster);
+                counter ? monsterCount.set(monster, counter + 1): monsterCount.set(monster, 1);
+                counter = gameCount.get(`Monster Hunter ${choices}`);
+                counter ? gameCount.set(`Monster Hunter ${choices}`, counter + 1): gameCount.set(`Monster Hunter ${choices}`, 1);
             }
-            if(subscriberCount.size > 0){
-                let subscriberTable = document.getElementById("subscribers");
-                subscriberTable.innerHTML = "";
+            if(monsterCount.size > 0){
+                let monsterTable = document.getElementById("monsters");
+                monsterTable.innerHTML = "";
                 let index = 0;
-                for(let [date, count] of subscriberCount){
+                let monsterList = [];
+                for(let [monster, count] of monsterCount){
+                    monsterList.push({monster : monster, count : count});
+                }
+                monsterList.sort((a, b) => b.count - a.count);
+                for(let entry of monsterList){
                     index++;
                     let rowTemplate = `
                     <tr>
                         <th>${index}</th>
-                        <td>${date}</td>
-                        <td>${count}</td>
+                        <td>${entry.monster}</td>
+                        <td>${entry.count}</td>
                     </tr>`;                   
-                    subscriberTable.innerHTML += rowTemplate;
+                    monsterTable.innerHTML += rowTemplate;
+                }
+            }
+            if(gameCount.size > 0){
+                let gameTable = document.getElementById("games");
+                gameTable.innerHTML = "";
+                let index = 0;
+                let gameList = [];
+                for(let [game, count] of gameCount){
+                    gameList.push({game : game, count : count});
+                }
+                gameList.sort((a, b) => b.count - a.count);
+                for(let entry of gameList){
+                    index++;
+                    let rowTemplate = `
+                    <tr>
+                        <th>${index}</th>
+                        <td>${entry.game}</td>
+                        <td>${entry.count}</td>
+                    </tr>`;                   
+                    gameTable.innerHTML += rowTemplate;
                 }
             }
         }
@@ -76,11 +103,30 @@ let loaded = () => {
     let myform = document.getElementById('form');
     myform.addEventListener('submit', (eventSubmit) => {
         eventSubmit.preventDefault();
-        let emailElement = document.getElementsByClassName('form-control form-control-lg')[0];
-        let emailText = emailElement.value;
-        if (emailText.length === 0) {
-            emailElement.focus();
-            emailElement.animate(
+        let monsterElement = document.getElementById('form_monster');
+        let monsterName = monsterElement.value;
+        if (monsterName.length === 0) {
+            monsterElement.focus();
+            monsterElement.animate(
+                [
+                    { transform: "translateX(0)" },
+                    { transform: "translateX(50px)" },
+                    { transform: "translateX(-50px)" },
+                    { transform: "translateX(0)" }
+                ],
+                {
+                    duration: 400,
+                    easing: "linear",
+                }
+            )
+            return;
+        }
+
+        let gameElement = document.getElementById("choices");
+        let gameName = gameElement.value;
+        if (gameName.length === 0) {
+            gameElement.focus();
+            gameElement.animate(
                 [
                     { transform: "translateX(0)" },
                     { transform: "translateX(50px)" },
@@ -97,7 +143,6 @@ let loaded = () => {
 
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        data['saved'] = new Date().toLocaleString('es-CO', { timeZone: 'America/Guayaquil' });
         sendData(data);
     })
 }

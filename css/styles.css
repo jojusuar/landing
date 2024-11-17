@@ -73,6 +73,13 @@ h3 {
     width: 100%;
 }
 
+#main-screen button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 999;
+}
+
 .logos-line {
     display: flex;
     flex-direction: row;
